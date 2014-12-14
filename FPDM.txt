@@ -2,15 +2,14 @@
 
 03A4: name_thread 'FPDM'
 
-11@ = 49 // enable, 1
-12@ = 51 // disable, 3
+11@ = 49 // toggle, 1
 13@ = 81 // left, Q
 14@ = 69 // right, E
 15@ = 4 // behind, middle mouse button
 // http://www.gta-modding.com/san_andreas/tutorials/virtual_key_codes.html
 
 0AF0: 11@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "ENABLE"
-0AF0: 12@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "DISABLE"
+0AF0: 11@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "TOGGLE"
 0AF0: 13@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "LEFT"
 0AF0: 14@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "RIGHT"
 0AF0: 15@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "BEHIND"
@@ -20,11 +19,13 @@ while true
 	wait 0
 	if and
 		00DF:   actor $PLAYER_ACTOR driving
-		0AB0:   key_pressed 11@ // enable
+		0AB0:   key_pressed 11@ // toggle
 	then
 		03C0: 21@ = actor $PLAYER_ACTOR car
 		067F: set_car 21@ lights 2
 		0697: set_car 21@ remove_component 4 visible_effect_flag 0
+		067C: put_camera_on_actor $PLAYER_ACTOR offset 0.0 -0.2 0.666 rotation 0.0 180.0 -10.0 tilt 0.0 switchstyle 2
+		wait 700
 		jump @FPDM_FRONT
 	end
 end
@@ -35,7 +36,7 @@ while true
 	067C: put_camera_on_actor $PLAYER_ACTOR offset 0.0 -0.2 0.666 rotation 0.0 180.0 -10.0 tilt 0.0 switchstyle 2
 	if or
 		80DF:   not actor $PLAYER_ACTOR driving
-		0AB0:   key_pressed 12@ // disable
+		0AB0:   key_pressed 11@ // toggle
 	then
 		if
 			056E:   car 21@ defined
@@ -44,6 +45,7 @@ while true
 			0698: set_car 21@ repair_componentB 4
 		end
 		02EB: restore_camera_with_jumpcut
+		wait 700
 		jump @FPDM_DISABLE
 	end
 	if
