@@ -22,6 +22,9 @@ while true
 		00DF:   actor $PLAYER_ACTOR driving
 		0AB0:   key_pressed 11@ // enable
 	then
+		03C0: 21@ = actor $PLAYER_ACTOR car
+		067F: set_car 21@ lights 2
+		0697: set_car 21@ remove_component 4 visible_effect_flag 0
 		jump @FPDM_FRONT
 	end
 end
@@ -34,6 +37,12 @@ while true
 		80DF:   not actor $PLAYER_ACTOR driving
 		0AB0:   key_pressed 12@ // disable
 	then
+		if
+			056E:   car 21@ defined
+		then
+			067F: set_car 21@ lights 0
+			0698: set_car 21@ repair_componentB 4
+		end
 		02EB: restore_camera_with_jumpcut
 		jump @FPDM_DISABLE
 	end
