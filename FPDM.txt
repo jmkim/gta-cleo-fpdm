@@ -1,0 +1,88 @@
+{$CLEO .cs}
+
+03A4: name_thread 'FPDM'
+
+11@ = 49 // enable, 1
+12@ = 51 // disable, 3
+13@ = 81 // left, Q
+14@ = 69 // right, E
+15@ = 4 // behind, middle mouse button
+// http://www.gta-modding.com/san_andreas/tutorials/virtual_key_codes.html
+
+0AF0: 11@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "ENABLE"
+0AF0: 12@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "DISABLE"
+0AF0: 13@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "LEFT"
+0AF0: 14@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "RIGHT"
+0AF0: 15@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "BEHIND"
+
+:FPDM_DISABLE
+while true
+	wait 0
+	if and
+		00DF:   actor $PLAYER_ACTOR driving
+		0AB0:   key_pressed 11@ // enable
+	then
+		jump @FPDM_FRONT
+	end
+end
+
+:FPDM_FRONT
+while true
+	wait 0
+	067C: put_camera_on_actor $PLAYER_ACTOR offset 0.0 -0.2 0.666 rotation 0.0 180.0 -10.0 tilt 0.0 switchstyle 2
+	if or
+		80DF:   not actor $PLAYER_ACTOR driving
+		0AB0:   key_pressed 12@ // disable
+	then
+		02EB: restore_camera_with_jumpcut
+		jump @FPDM_DISABLE
+	end
+	if
+		0AB0:   key_pressed 13@ // left
+	then
+		jump @FPDM_LEFT
+	end
+	if
+		0AB0:   key_pressed 14@ // right
+	then
+		jump @FPDM_RIGHT
+	end
+	if
+		0AB0:   key_pressed 15@ // behind
+	then
+		jump @FPDM_BEHIND
+	end
+end
+
+:FPDM_LEFT
+067C: put_camera_on_actor $PLAYER_ACTOR offset 0.0 -0.2 0.666 rotation -180.0 180.0 -35.0 tilt 0.0 switchstyle 2
+while true
+	wait 0
+	if
+		8AB0:   not key_pressed 13@ // left
+	then
+		jump @FPDM_FRONT
+	end
+end
+
+:FPDM_RIGHT
+067C: put_camera_on_actor $PLAYER_ACTOR offset 0.0 -0.2 0.666 rotation 180.0 135.0 -35.0 tilt 0.0 switchstyle 2
+while true
+	wait 0
+	if
+		8AB0:   not key_pressed 14@ // right
+	then
+		jump @FPDM_FRONT
+	end
+end
+
+:FPDM_BEHIND
+067C: put_camera_on_actor $PLAYER_ACTOR offset 0.0 -0.4 0.666 rotation 0.0 -180.0 0.0 tilt 0.0 switchstyle 2
+while true
+	wait 0
+	if
+		8AB0:   not key_pressed 15@ // behind
+	then
+		jump @FPDM_FRONT
+	end
+end
