@@ -2,76 +2,104 @@
 
 03A4: name_thread 'FPDM'
 
+10@ = 0 // default view (0=off, 1=on, 2=using last status)
 11@ = 49 // toggle, 1
 13@ = 81 // left, Q
 14@ = 69 // right, E
-15@ = 4 // behind, middle mouse button
 // http://www.gta-modding.com/san_andreas/tutorials/virtual_key_codes.html
 
+0AF0: 10@ = get_int_from_ini_file "CLEO\FPDM.INI" section "GENERAL" key "DEFAULT_VIEW"
 0AF0: 11@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "TOGGLE"
 0AF0: 13@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "LEFT"
 0AF0: 14@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "RIGHT"
-0AF0: 15@ = get_int_from_ini_file "CLEO\FPDM.INI" section "BIND_KEY" key "BEHIND"
 
-:FPDM_DISABLE
+:FPDM_WALK
 while true
 	wait 0
-	if and
-		00DF: actor $PLAYER_ACTOR driving
-		0AB0: key_pressed 11@ // toggle
+	if
+		00DF: actor $PLAYER_ACTOR driving // when player begins driving...
 	then
-		if and
-			847A: not actor $PLAYER_ACTOR driving_bike
-			84AB: not actor $PLAYER_ACTOR driving_plane
-			84A7: not actor $PLAYER_ACTOR driving_boat
+		if
+			0039: 10@ == 1
 		then
-			03C0: 21@ = actor $PLAYER_ACTOR car
-			067F: set_car 21@ lights 2
-			0697: set_car 21@ remove_component 4 visible_effect_flag 0
+			jump @FPDM_RIDE
 		end
-		067C: put_camera_on_actor $PLAYER_ACTOR offset 0.0 -0.2 0.666 rotation 0.0 180.0 -10.0 tilt 0.0 switchstyle 2
-		wait 700
-		jump @FPDM_FRONT
+		if and
+			0039: 10@ == 2
+			0039: 20@ == 1
+		then
+			jump @FPDM_RIDE
+		end
+		while true
+			wait 0
+			if
+				0AB0: key_pressed 11@ // toggle - on
+			then
+				jump @FPDM_RIDE
+			end
+		end
 	end
 end
+
+:FPDM_RIDE
+wait 0
+20@ = 1
+if and
+	847A: not actor $PLAYER_ACTOR driving_bike
+	84AB: not actor $PLAYER_ACTOR driving_plane
+	84A7: not actor $PLAYER_ACTOR driving_boat
+then
+	03C0: 21@ = actor $PLAYER_ACTOR car
+	067F: set_car 21@ lights 2
+	0697: set_car 21@ remove_component 4 visible_effect_flag 0
+end
+067C: put_camera_on_actor $PLAYER_ACTOR offset 0.0 -0.2 0.666 rotation 0.0 180.0 -10.0 tilt 0.0 switchstyle 2
+wait 300
+jump @FPDM_FRONT
 
 :FPDM_FRONT
 while true
 	wait 0
 	067C: put_camera_on_actor $PLAYER_ACTOR offset 0.0 -0.2 0.666 rotation 0.0 180.0 -10.0 tilt 0.0 switchstyle 2
-	if or
-		80DF: not actor $PLAYER_ACTOR driving
-		0AB0: key_pressed 11@ // toggle
+	if
+		80DF: not actor $PLAYER_ACTOR driving // When player stops driving...
 	then
-		if and
-			056E: car 21@ defined
-			847A: not actor $PLAYER_ACTOR driving_bike
-			84AB: not actor $PLAYER_ACTOR driving_plane
-			84A7: not actor $PLAYER_ACTOR driving_boat
-		then
-			067F: set_car 21@ lights 0
-			0698: set_car 21@ repair_componentB 4
-		end
-		02EB: restore_camera_with_jumpcut
-		wait 700
-		jump @FPDM_DISABLE
+		jump @FPDM_RESTORE
 	end
+	wait 0
+	if
+		0AB0: key_pressed 11@ // toggle - off
+	then
+		20@ = 2
+		jump @FPDM_RESTORE
+	end
+	wait 0
 	if
 		0AB0: key_pressed 13@ // left
 	then
 		jump @FPDM_LEFT
 	end
+	wait 0
 	if
 		0AB0: key_pressed 14@ // right
 	then
 		jump @FPDM_RIGHT
 	end
-	if
-		0AB0: key_pressed 15@ // behind
-	then
-		jump @FPDM_BEHIND
-	end
 end
+
+:FPDM_RESTORE
+02EB: restore_camera_with_jumpcut
+if and
+	056E: car 21@ defined
+	847A: not actor $PLAYER_ACTOR driving_bike
+	84AB: not actor $PLAYER_ACTOR driving_plane
+	84A7: not actor $PLAYER_ACTOR driving_boat
+then
+	067F: set_car 21@ lights 0
+	0698: set_car 21@ repair_componentB 4
+end
+wait 300
+jump @FPDM_WALK
 
 :FPDM_LEFT
 067C: put_camera_on_actor $PLAYER_ACTOR offset 0.0 -0.2 0.666 rotation -180.0 180.0 -35.0 tilt 0.0 switchstyle 2
@@ -81,6 +109,12 @@ while true
 		8AB0: not key_pressed 13@ // left
 	then
 		jump @FPDM_FRONT
+	end
+	wait 0
+	if
+		0AB0: key_pressed 14@ // right
+	then
+		jump @FPDM_BEHIND
 	end
 end
 
@@ -93,6 +127,12 @@ while true
 	then
 		jump @FPDM_FRONT
 	end
+	wait 0
+	if
+		0AB0: key_pressed 13@ // left
+	then
+		jump @FPDM_BEHIND
+	end
 end
 
 :FPDM_BEHIND
@@ -100,8 +140,14 @@ end
 while true
 	wait 0
 	if
-		8AB0: not key_pressed 15@ // behind
+		8AB0: not key_pressed 14@ // right
 	then
-		jump @FPDM_FRONT
+		jump @FPDM_LEFT
+	end
+	wait 0
+	if
+		8AB0: not key_pressed 13@ // left
+	then
+		jump @FPDM_RIGHT
 	end
 end
